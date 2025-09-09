@@ -6,10 +6,9 @@ import threading
 
 # Configurações do e-mail
 REMETENTE = "estagioteste045@gmail.com"
-SENHA = "xvhp iefx pqfj kjog"
+SENHA = "sua_senha_de_app"
 ASSUNTO = "Sua trajetória na Fatec Zona Leste continua fazendo história 💙"
 
-# Função para encontrar coluna por nome aproximado
 def encontrar_coluna(colunas, termos_possiveis):
     for termo in termos_possiveis:
         for coluna in colunas:
@@ -17,13 +16,11 @@ def encontrar_coluna(colunas, termos_possiveis):
                 return coluna
     return None
 
-# Função principal de envio
 def enviar_emails(caminho_csv, barra, root):
     try:
         egressos = pd.read_csv(caminho_csv, sep=';', encoding='utf-8')
         egressos.columns = egressos.columns.str.strip()
 
-        # Detecta colunas principais
         coluna_nome = encontrar_coluna(egressos.columns, ['nome', 'nome completo'])
         coluna_email = encontrar_coluna(egressos.columns, ['email', 'e-mail'])
 
@@ -56,11 +53,10 @@ Equipe Fatec Zona Leste
             barra['value'] = ((i + 1) / total) * 100
             root.update_idletasks()
 
-        messagebox.showinfo("Sucesso", "Todos os e-mails foram enviados com sucesso!")
+        messagebox.showinfo("Sucesso", "Todos os e-mails foram enviados com sucesso!\nObrigado por fortalecer a comunidade Fatec.")
     except Exception as e:
         messagebox.showerror("Erro", f"Ocorreu um erro: {e}")
 
-# Interface gráfica
 def iniciar_envio():
     caminho = filedialog.askopenfilename(title="Selecione o CSV", filetypes=[("CSV files", "*.csv")])
     if caminho:
@@ -68,14 +64,32 @@ def iniciar_envio():
         barra.pack(pady=10)
         threading.Thread(target=enviar_emails, args=(caminho, barra, root)).start()
 
+# Interface gráfica
 root = tk.Tk()
 root.title("Envio de E-mails - Fatec Zona Leste")
-root.geometry("400x200")
+root.geometry("500x450")
+root.configure(bg="#ffffff")  # fundo branco
 
-label = tk.Label(root, text="Clique abaixo para selecionar o arquivo CSV dos egressos:")
+# Topo vermelho
+topo = tk.Frame(root, bg="#990000", height=60)
+topo.pack(fill="x")
+
+titulo = tk.Label(topo, text="Envio de E-mails para Egressos", bg="#990000", fg="white", font=("Times New Roman", 16, "bold"))
+titulo.pack(pady=15)
+
+# Instrução
+label = tk.Label(root, text="Selecione o arquivo CSV com os dados dos egressos:", bg="#ffffff", fg="#333333", font=("Times New Roman", 12))
 label.pack(pady=20)
 
-botao = tk.Button(root, text="Selecionar CSV e Enviar", command=iniciar_envio)
-botao.pack()
+# Botão
+botao = tk.Button(root, text="Selecionar CSV e Enviar", command=iniciar_envio, bg="#990000", fg="white", font=("Times New Roman", 11, "bold"))
+botao.pack(pady=10)
+
+# Rodapé vermelho
+rodape = tk.Frame(root, bg="#990000", height=40)
+rodape.pack(side="bottom", fill="x")
+
+rodape_label = tk.Label(rodape, text="Fatec Zona Leste © 2025", bg="#990000", fg="white", font=("Times New Roman", 10))
+rodape_label.pack(pady=10)
 
 root.mainloop()
