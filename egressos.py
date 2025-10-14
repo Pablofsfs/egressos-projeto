@@ -6,7 +6,7 @@ import threading
 
 # Configurações do e-mail
 REMETENTE = "estagioteste045@gmail.com"
-SENHA = "sua_senha_de_app"
+SENHA = "ewwf rqbf dysq xotv"
 ASSUNTO = "Sua trajetória na Fatec Zona Leste continua fazendo história 💙"
 
 def encontrar_coluna(colunas, termos_possiveis):
