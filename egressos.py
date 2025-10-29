@@ -84,11 +84,19 @@ def selecionar_arquivo():
         label_arquivo.config(text=f"Arquivo: {os.path.basename(caminho)}")
         status_label.config(text=f"Carregado em {datetime.now().strftime('%d/%m/%Y %H:%M')}")
 
+        try:
+            df = pd.read_csv(caminho, sep=';', encoding='utf-8')
+            mostrar_csv(df)
+        except Exception as e:
+            messagebox.showerror("Erro ao carregar CSV", f"O arquivo não pôde ser exibido: {e}")
+
 def excluir_arquivo():
     global arquivo_selecionado
     arquivo_selecionado = None
     label_arquivo.config(text="Nenhum arquivo selecionado")
     status_label.config(text="")
+    for widget in frame_csv.winfo_children():
+        widget.destroy()
 
 def carregar_historico():
     for row in historico_tree.get_children():
@@ -100,7 +108,6 @@ def carregar_historico():
             for linha in reader:
                 historico_tree.insert("", "end", values=linha)
 
-# Função para ordenar a Treeview
 def ordenar_treeview(coluna, reverso):
     dados = [(historico_tree.set(k, coluna), k) for k in historico_tree.get_children()]
     try:
@@ -118,24 +125,36 @@ def ordenar_treeview(coluna, reverso):
 
     historico_tree.heading(coluna, command=lambda: ordenar_treeview(coluna, not reverso))
 
+def mostrar_csv(df):
+    for widget in frame_csv.winfo_children():
+        widget.destroy()
+
+    tree = ttk.Treeview(frame_csv, columns=list(df.columns), show="headings", height=12, style="Custom.Treeview")
+
+    for col in df.columns:
+        tree.heading(col, text=col)
+        tree.column(col, anchor="center", width=160)
+
+    for _, row in df.iterrows():
+        tree.insert("", "end", values=list(row))
+
+    tree.pack(pady=5)
+
 # Interface gráfica
 root = tk.Tk()
 root.title("Envio de E-mails - Fatec Zona Leste")
-root.geometry("650x620")
+root.geometry("900x750")
 root.configure(bg="#ffffff")
 
-# Topo vermelho
 topo = tk.Frame(root, bg="#990000", height=60)
 topo.pack(fill="x")
 
 titulo = tk.Label(topo, text="Envio de E-mails para Egressos", bg="#990000", fg="white", font=("Times New Roman", 16, "bold"))
 titulo.pack(pady=15)
 
-# Instruções
 label_instrucao = tk.Label(root, text="Selecione o arquivo CSV com os dados dos egressos:", bg="#ffffff", fg="#333333", font=("Times New Roman", 12))
 label_instrucao.pack(pady=10)
 
-# Botões
 botoes_frame = tk.Frame(root, bg="#ffffff")
 botoes_frame.pack(pady=5)
 
@@ -148,19 +167,16 @@ btn_enviar.grid(row=0, column=1, padx=5)
 btn_excluir = tk.Button(botoes_frame, text="Excluir Arquivo", command=excluir_arquivo, bg="#990000", fg="white", font=("Times New Roman", 11, "bold"), width=15)
 btn_excluir.grid(row=0, column=2, padx=5)
 
-# Labels de status
 label_arquivo = tk.Label(root, text="Nenhum arquivo selecionado", bg="#ffffff", fg="#333333", font=("Times New Roman", 11))
 label_arquivo.pack(pady=5)
 
 status_label = tk.Label(root, text="", bg="#ffffff", fg="#666666", font=("Times New Roman", 10))
 status_label.pack(pady=5)
 
-# Estilo da tabela
 style = ttk.Style()
 style.configure("Custom.Treeview", borderwidth=1, relief="solid", font=("Times New Roman", 10))
 style.configure("Custom.Treeview.Heading", font=("Times New Roman", 11, "bold"))
 
-# Histórico
 label_hist = tk.Label(root, text="Histórico de Envios:", bg="#ffffff", fg="#333333", font=("Times New Roman", 12, "bold"))
 label_hist.pack(pady=10)
 
@@ -169,7 +185,6 @@ historico_tree.heading("Arquivo", text="Arquivo", command=lambda: ordenar_treevi
 historico_tree.heading("Data", text="Data", command=lambda: ordenar_treeview("Data", False))
 historico_tree.heading("Total", text="Total", command=lambda: ordenar_treeview("Total", False))
 historico_tree.heading("Status", text="Status", command=lambda: ordenar_treeview("Status", False))
-
 historico_tree.column("Arquivo", anchor="w", width=200)
 historico_tree.column("Data", anchor="center", width=140)
 historico_tree.column("Total", anchor="center", width=80)
@@ -178,6 +193,13 @@ historico_tree.column("Status", anchor="center", width=100)
 historico_tree.pack(pady=5)
 
 carregar_historico()
+
+# Área para mostrar conteúdo do CSV
+label_csv = tk.Label(root, text="Pré-visualização do CSV selecionado:", bg="#ffffff", fg="#333333", font=("Times New Roman", 12, "bold"))
+label_csv.pack(pady=10)
+
+frame_csv = tk.Frame(root, bg="#ffffff")
+frame_csv.pack(pady=5)
 
 # Rodapé
 rodape = tk.Frame(root, bg="#990000", height=40)
