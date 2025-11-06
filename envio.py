@@ -1,33 +1,46 @@
-import pandas as pd
-import yagmail
-import os
 import csv
-from datetime import datetime
+import os
+import pandas as pd
+import tkinter as tk
 from tkinter import messagebox
-from views.tela_envio import carregar_historico
+from datetime import datetime
+import yagmail
 
+# Configurações do e-mail
 REMETENTE = "estagioteste045@gmail.com"
 SENHA = "ewwf rqbf dysq xotv"
 ASSUNTO = "Sua trajetória na Fatec Zona Leste continua fazendo história 💙"
 HISTORICO_PATH = "historico_envios.csv"
 
-def encontrar_coluna(colunas, termos_possiveis):
-    for termo in termos_possiveis:
-        for coluna in colunas:
-            if termo.lower() in coluna.lower():
-                return coluna
+def mostrar_envio_popup():
+    popup = tk.Toplevel()
+    popup.title("Enviando e-mails...")
+    popup.geometry("300x100")
+    popup.configure(bg="white")
+    popup.resizable(False, False)
+
+    label = tk.Label(popup, text="Enviando e-mails, aguarde...", font=("Arial", 12), bg="white")
+    label.pack(pady=20)
+
+    popup.update()
+    return popup
+
+def encontrar_coluna(colunas, candidatos):
+    for nome in colunas:
+        if nome.strip().lower() in [c.strip().lower() for c in candidatos]:
+            return nome
     return None
 
-def enviar_emails(arquivo_selecionado):
+def enviar_emails(arquivo_csv):
+    if not arquivo_csv or not os.path.exists(arquivo_csv):
+        messagebox.showerror("Erro", "Nenhum arquivo válido selecionado.")
+        return
+
+    popup = mostrar_envio_popup()
+
     try:
-        if not arquivo_selecionado:
-            messagebox.showwarning("Aviso", "Nenhum arquivo selecionado.")
-            return
-
-        egressos = pd.read_csv(arquivo_selecionado, sep=';', encoding='utf-8')
-        egressos.columns = egressos.columns.str.strip()
-
-        coluna_nome = encontrar_coluna(egressos.columns, ['nome', 'nome completo'])
+        egressos = pd.read_csv(arquivo_csv, sep=';', encoding='utf-8')
+        coluna_nome = encontrar_coluna(egressos.columns, ['nome', 'name'])
         coluna_email = encontrar_coluna(egressos.columns, ['email', 'e-mail'])
 
         if not coluna_nome or not coluna_email:
@@ -55,16 +68,31 @@ Com carinho,
 Equipe Fatec Zona Leste
             """
 
-            yag.send(to=email, subject=ASSUNTO, contents=corpo)
+            try:
+                yag.send(to=email, subject=ASSUNTO, contents=corpo)
+                print(f"Enviado para: {email}")
+            except Exception as e:
+                print(f"Erro ao enviar para {email}: {e}")
 
-        yag.send(to=REMETENTE, subject="Resumo de envio Fatec", contents=f"Foram enviados {total} e-mails com sucesso usando o arquivo '{os.path.basename(arquivo_selecionado)}'.")
+        # Envia resumo para o próprio remetente
+        resumo = f"Foram enviados {total} e-mails com sucesso usando o arquivo '{os.path.basename(arquivo_csv)}'."
+        yag.send(to=REMETENTE, subject="Resumo de envio Fatec", contents=resumo)
 
-        with open(HISTORICO_PATH, 'a', newline='', encoding='utf-8') as f:
-            writer = csv.writer(f, delimiter=';')
-            writer.writerow([os.path.basename(arquivo_selecionado), datetime.now().strftime('%d/%m/%Y %H:%M'), total, "Sucesso"])
-
-        carregar_historico()
-        messagebox.showinfo("Sucesso", f"{total} e-mails enviados com sucesso.")
+        registrar_historico(os.path.basename(arquivo_csv), total, "Sucesso")
 
     except Exception as e:
-        messagebox.showerror("Erro", f"Ocorreu um erro: {e}")
+        print(f"Erro geral no envio: {e}")
+        registrar_historico(os.path.basename(arquivo_csv), 0, "Erro")
+
+    popup.destroy()
+
+def registrar_historico(nome_arquivo, total, status):
+    data = datetime.now().strftime("%d/%m/%Y %H:%M")
+    linha = f"{nome_arquivo};{data};{total};{status}\n"
+
+    try:
+        with open(HISTORICO_PATH, "a", encoding="utf-8") as f:
+            f.write(linha)
+        print("Histórico atualizado.")
+    except Exception as e:
+        print(f"Erro ao registrar histórico: {e}")

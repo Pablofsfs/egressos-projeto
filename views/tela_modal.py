@@ -4,6 +4,7 @@ import pandas as pd
 import os
 import threading
 from envio import enviar_emails
+from views.tela_envio import carregar_historico
 
 arquivo_selecionado = None
 
@@ -11,11 +12,30 @@ def abrir_modal(root):
     global arquivo_selecionado
 
     modal = tk.Toplevel(root)
-    modal.iconbitmap("assets/FATEC_ZONA_LESTE.ico")
     modal.title("Gerenciar CSV")
-    modal.geometry("550x350")
+    modal.geometry("600x400")
     modal.configure(bg="#ffffff")
     modal.grab_set()
+
+    label_arquivo_modal = tk.Label(modal, text="Nenhum arquivo selecionado", bg="#ffffff", fg="#333333", font=("Times New Roman", 11))
+    label_arquivo_modal.pack(pady=10)
+
+    frame_csv_modal = tk.Frame(modal, bg="#ffffff")
+    frame_csv_modal.pack(pady=10, fill="both", expand=True)
+
+    def mostrar_csv_modal(df):
+        for widget in frame_csv_modal.winfo_children():
+            widget.destroy()
+
+        tree = ttk.Treeview(frame_csv_modal, columns=list(df.columns), show="headings", height=12)
+        for col in df.columns:
+            tree.heading(col, text=col)
+            tree.column(col, anchor="center", width=160)
+
+        for _, row in df.iterrows():
+            tree.insert("", "end", values=list(row))
+
+        tree.pack(pady=5, fill="both", expand=True)
 
     def selecionar_arquivo_modal():
         global arquivo_selecionado
@@ -36,22 +56,9 @@ def abrir_modal(root):
         for widget in frame_csv_modal.winfo_children():
             widget.destroy()
 
-    def mostrar_csv_modal(df):
-        for widget in frame_csv_modal.winfo_children():
-            widget.destroy()
-
-        tree = ttk.Treeview(frame_csv_modal, columns=list(df.columns), show="headings", height=12, style="Custom.Treeview")
-        for col in df.columns:
-            tree.heading(col, text=col)
-            tree.column(col, anchor="center", width=160)
-
-        for _, row in df.iterrows():
-            tree.insert("", "end", values=list(row))
-
-        tree.pack(pady=5)
-
-    label_arquivo_modal = tk.Label(modal, text="Nenhum arquivo selecionado", bg="#ffffff", fg="#333333", font=("Times New Roman", 11))
-    label_arquivo_modal.pack(pady=10)
+    def enviar_e_atualizar():
+        enviar_emails(arquivo_selecionado)
+        carregar_historico()
 
     botoes_modal = tk.Frame(modal, bg="#ffffff")
     botoes_modal.pack(pady=5)
@@ -59,7 +66,7 @@ def abrir_modal(root):
     btn_selecionar_modal = tk.Button(botoes_modal, text="Selecionar Arquivo", command=selecionar_arquivo_modal, bg="#990000", fg="white", font=("Times New Roman", 11, "bold"), width=18)
     btn_selecionar_modal.grid(row=0, column=0, padx=5)
 
-    btn_enviar_modal = tk.Button(botoes_modal, text="Enviar E-mails", command=lambda: threading.Thread(target=lambda: enviar_emails(arquivo_selecionado)).start(), bg="#006600", fg="white", font=("Times New Roman", 11, "bold"), width=18)
+    btn_enviar_modal = tk.Button(botoes_modal, text="Enviar E-mails", command=lambda: threading.Thread(target=enviar_e_atualizar).start(), bg="#006600", fg="white", font=("Times New Roman", 11, "bold"), width=18)
     btn_enviar_modal.grid(row=0, column=1, padx=5)
 
     btn_excluir_modal = tk.Button(botoes_modal, text="Excluir Arquivo", command=excluir_arquivo_modal, bg="#990000", fg="white", font=("Times New Roman", 11, "bold"), width=18)
@@ -67,6 +74,3 @@ def abrir_modal(root):
 
     btn_fechar_modal = tk.Button(modal, text="Fechar", command=modal.destroy, bg="#666666", fg="white", font=("Times New Roman", 11), width=12)
     btn_fechar_modal.pack(pady=10)
-
-    frame_csv_modal = tk.Frame(modal, bg="#ffffff")
-    frame_csv_modal.pack(pady=10)

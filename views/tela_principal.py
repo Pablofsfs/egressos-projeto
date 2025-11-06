@@ -1,12 +1,21 @@
+import os
+import sys
 import tkinter as tk
 from views.tela_modal import abrir_modal
 from views.tela_envio import configurar_treeview
+
+def caminho_relativo(arquivo):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, arquivo)
+    return arquivo
+
 
 def criar_tela_principal(root):
     root.title("Envio de E-mails - Fatec Zona Leste")
     root.geometry("700x550")
     root.configure(bg="#ffffff")
-    root.iconbitmap("assets/FATEC_ZONA_LESTE.ico")
+    root.iconbitmap(caminho_relativo("assets/FATEC_ZONA_LESTE.ico"))
+
 
     topo = tk.Frame(root, bg="#990000", height=60)
     topo.pack(fill="x")

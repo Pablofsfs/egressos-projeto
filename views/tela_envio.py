@@ -14,7 +14,14 @@ def configurar_treeview(root):
     style.configure("Custom.Treeview", borderwidth=1, relief="solid", font=("Times New Roman", 10))
     style.configure("Custom.Treeview.Heading", font=("Times New Roman", 11, "bold"))
 
-    historico_tree = ttk.Treeview(root, columns=("Arquivo", "Data", "Total", "Status"), show="headings", height=8, style="Custom.Treeview")
+    historico_tree = ttk.Treeview(
+        root,
+        columns=("Arquivo", "Data", "Total", "Status"),
+        show="headings",
+        height=8,
+        style="Custom.Treeview"
+    )
+
     for col in ("Arquivo", "Data", "Total", "Status"):
         historico_tree.heading(col, text=col, command=lambda c=col: ordenar_treeview(c, False))
 
@@ -34,22 +41,27 @@ def carregar_historico():
         historico_tree.delete(row)
 
     if os.path.exists(HISTORICO_PATH):
-        with open(HISTORICO_PATH, newline='', encoding='utf-8') as f:
-            reader = csv.reader(f, delimiter=';')
-            for linha in reader:
-                historico_tree.insert("", "end", values=linha)
+        try:
+            with open(HISTORICO_PATH, newline='', encoding='utf-8') as f:
+                reader = csv.reader(f, delimiter=';')
+                for linha in reader:
+                    if len(linha) == 4:
+                        historico_tree.insert("", "end", values=linha)
+        except Exception as e:
+            print(f"Erro ao carregar histórico: {e}")
 
 def ordenar_treeview(coluna, reverso):
     global historico_tree
     dados = [(historico_tree.set(k, coluna), k) for k in historico_tree.get_children()]
     try:
         if coluna == "Total":
-            dados.sort(key=lambda t: int(t[0]), reverse=reverso)
+            dados.sort(key=lambda t: int(t[0]) if t[0].isdigit() else 0, reverse=reverso)
         elif coluna == "Data":
             dados.sort(key=lambda t: datetime.strptime(t[0], "%d/%m/%Y %H:%M"), reverse=reverso)
         else:
-            dados.sort(key=lambda t: t[0].lower(), reverse=reverso)
-    except:
+            dados.sort(key=lambda t: t[0].lower() if t[0] else "", reverse=reverso)
+    except Exception as e:
+        print(f"Erro ao ordenar: {e}")
         dados.sort(reverse=reverso)
 
     for index, (val, k) in enumerate(dados):
