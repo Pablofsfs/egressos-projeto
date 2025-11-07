@@ -8,9 +8,19 @@ from views.tela_envio import carregar_historico
 
 arquivo_selecionado = None
 
+def centralizar_janela(janela, largura=600, altura=400):
+    largura_tela = janela.winfo_screenwidth()
+    altura_tela = janela.winfo_screenheight()
+
+    x = (largura_tela // 2) - (largura // 2)
+    y = (altura_tela // 2) - (altura // 2)
+
+    janela.geometry(f"{largura}x{altura}+{x}+{y}")
+
+
 def abrir_modal(root):
     global arquivo_selecionado
-
+    modal.iconbitmap(caminho_relativo("assets/FATEC_ZONA_LESTE.ico"))
     modal = tk.Toplevel(root)
     modal.title("Gerenciar CSV")
     modal.geometry("600x400")

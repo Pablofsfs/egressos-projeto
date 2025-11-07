@@ -2,10 +2,10 @@
 
 
 a = Analysis(
-    ['egressos.py'],
+    ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('assets', 'assets')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -35,5 +35,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['FATEC_ZONA_LESTE.ico'],
+    icon=['assets\\FATEC_ZONA_LESTE.ico'],
 )

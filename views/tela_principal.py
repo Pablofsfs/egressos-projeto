@@ -9,13 +9,18 @@ def caminho_relativo(arquivo):
         return os.path.join(sys._MEIPASS, arquivo)
     return arquivo
 
+def centralizar_janela(janela, largura, altura):
+    largura_tela = janela.winfo_screenwidth()
+    altura_tela = janela.winfo_screenheight()
+    x = (largura_tela // 2) - (largura // 2)
+    y = (altura_tela // 2) - (altura // 2)
+    janela.geometry(f"{largura}x{altura}+{x}+{y}")
 
 def criar_tela_principal(root):
     root.title("Envio de E-mails - Fatec Zona Leste")
-    root.geometry("700x550")
+    centralizar_janela(root, 700, 550)  # tela principal centralizada
     root.configure(bg="#ffffff")
     root.iconbitmap(caminho_relativo("assets/FATEC_ZONA_LESTE.ico"))
-
 
     topo = tk.Frame(root, bg="#990000", height=60)
     topo.pack(fill="x")
